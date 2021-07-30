@@ -49,6 +49,21 @@ int sum(char *file)
 	return (t);
 }
 
+void save(char *file,int total)
+{
+	FILE *fp = NULL;
+
+	fp = fopen(file,"w");
+	if (fp == NULL)
+	{
+		perror("open failure");
+	}
+
+	fprintf(fp,"%d\n",total);
+
+	fclose(fp);
+}
+
 int main(void)
 {
 	int total = 0; // 合計
@@ -81,7 +96,12 @@ int main(void)
 		else if (strcmp(cmd,"reset") == 0)
 		{
 			total = 0;
-			printf("total reset");
+			printf("total reset\n");
+		}
+		else if (strcmp(cmd,"save") == 0)
+		{
+			scanf(fmt,arg);
+			save(arg,total);
 		}
 		else if (strcmp(cmd,"help") == 0)
 		{
