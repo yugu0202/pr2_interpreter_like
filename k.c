@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define BUFLEN 256 // 文字列バッファのサイズ
 
@@ -64,10 +65,27 @@ void save(char *file,int total)
 	fclose(fp);
 }
 
+void record(char *file,char *cmd)
+{
+	FILE *fp = NULL;
+
+	fp = fopen(file,"a");
+	if (fp == NULL)
+	{
+		perror("open failure");
+	}
+
+	fprintf(fp,"%s\n",cmd);
+
+	fclose(fp);
+}
+
 int main(void)
 {
 	int total = 0; // 合計
 	int num = 0;
+	int recordFlag = 0,skipFlag = 0;
+	char recordFile[BUFLEN];
 	char cmd[BUFLEN]; // コマンドの文字列バッファ
 	char arg[BUFLEN]; // コマンド引数バッファ
 	char buf[BUFLEN];
@@ -77,13 +95,18 @@ int main(void)
 
 	while (1)
 	{
+		skipFlag = 0;
 		// コマンドの入力
 		printf("order > ");
 		
 		if (scanf(fmt, cmd) == EOF) break;
 
+
 		// コマンドの解釈・実行
-		if (strcmp(cmd, "exit") == 0) break;	// exit コマンド
+		if (strcmp(cmd, "exit") == 0)
+		{
+			break;
+		}
 		else if (strcmp(cmd,"sum") == 0)
 		{
 			scanf(fmt,arg);
@@ -103,6 +126,21 @@ int main(void)
 			scanf(fmt,arg);
 			save(arg,total);
 		}
+		else if (strcmp(cmd,"record") == 0)
+		{
+			scanf(fmt,recordFile);
+			recordFlag = 1;
+			skipFlag = 1;
+		}
+		else if (strcmp(cmd,"end") == 0)
+		{
+			recordFlag = 0;
+			recordFile[0] = '\0';
+		}
+		else if (strcmp(cmd,"ls") == 0)
+		{
+			system(cmd);
+		}
 		else if (strcmp(cmd,"help") == 0)
 		{
 			fgets(buf,BUFLEN,stdin);
@@ -112,6 +150,12 @@ int main(void)
 		else
 		{
 			printf("error:unknown command:%s\n", cmd);
+			skipFlag = 1;
+		}
+
+		if (recordFlag == 1 && skipFlag == 0)
+		{
+			record(recordFile,cmd);
 		}
 
 		printf("\n");
