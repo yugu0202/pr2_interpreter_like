@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #define BUFLEN 256 // 文字列バッファのサイズ
+#define VERSION "1.0"
 
 //ヘルプ表示　引数があればより詳細なヘルプを表示する
 void help(int num,char *arg)
@@ -15,6 +15,12 @@ void help(int num,char *arg)
 		printf("reset\n");
 		printf("show\n");
 		printf("sum [filename]\n");
+		printf("save [filename]\n");
+		printf("record [filename]\n");
+		printf("end\n");
+		printf("run [filename]\n");
+		printf("ls\n");
+		printf("version\n");
 	}
 	else if (num == 1)
 	{
@@ -25,10 +31,60 @@ void help(int num,char *arg)
 			printf("\t[command]\n");
 			printf("show detailed [command] help\n");
 		}
+		if (strcmp(arg,"exit") == 0)
+		{
+			printf("\texit\n");
+			printf("system shutdown\n");
+		}
+		if (strcmp(arg,"reset") == 0)
+		{
+			printf("\treset\n");
+			printf("reset total\n");
+		}
+		if (strcmp(arg,"show") == 0)
+		{
+			printf("\tshow\n");
+			printf("show total\n");
+		}
+		if (strcmp(arg,"sum") == 0)
+		{
+			printf("\tsum [filename]\n");
+			printf("the sum of the numbers in the file\n");
+		}
+		if (strcmp(arg,"save") == 0)
+		{
+			printf("\tsave [filename]\n");
+			printf("save total to file\n");
+		}
+		if (strcmp(arg,"record") == 0)
+		{
+			printf("\trecord [filename]\n");
+			printf("record the executed command to a file\n");
+		}
+		if (strcmp(arg,"end") == 0)
+		{
+			printf("\tend\n");
+			printf("end recording\n");
+		}
+		if (strcmp(arg,"run") == 0)
+		{
+			printf("\trun [filename]\n");
+			printf("execute command from file\n");
+		}
+		if (strcmp(arg,"ls") == 0)
+		{
+			printf("\tls\n");
+			printf("display files and folders in the same level\n");
+		}
+		if (strcmp(arg,"version") == 0)
+		{
+			printf("\tversion\n");
+			printf("show version\n");
+		}
 	}
 }
 
-//ファイルの中の数字の合計を出す
+//指定したファイルの中の数字の合計を出す
 int sum(char *file)
 {
 	FILE *fp = NULL;
@@ -59,6 +115,7 @@ void save(char *file,int total)
 	FILE *fp = NULL;
 
 	fp = fopen(file,"w");
+	//これは異常終了させなきゃなのだろうか
 	if (fp == NULL)
 	{
 		perror("open failure");
@@ -69,20 +126,6 @@ void save(char *file,int total)
 	fclose(fp);
 }
 
-
-void fCreate(char *file)
-{
-	FILE *fp = NULL;
-
-	fp = fopen(file,"w");
-	if (fp == NULL)
-	{
-		perror("open failure");
-	}
-	fclose(fp);
-}
-
-
 //コマンドの動作を記録する
 void record(char *file,char *cmd)
 {
@@ -90,6 +133,7 @@ void record(char *file,char *cmd)
 
 	fp = fopen(file,"a");
 
+	//これは異常終了させなきゃなのだろうか
 	if (fp == NULL)
 	{
 		perror("open failure");
@@ -100,8 +144,7 @@ void record(char *file,char *cmd)
 	fclose(fp);
 }
 
-
-//recordで作られたファイルの読み込み、実行
+//recordで作られたファイルの読み込み、実行 もっと美しく書きたい
 int run(char *file,int total)
 {
 	FILE *fp = NULL;
@@ -113,11 +156,13 @@ int run(char *file,int total)
 	sprintf(fmt,"%%%ds",BUFLEN-1); // 書式文字列を自動生成する
 
 	fp = fopen(file,"r");
+	//これは異常終了させなきゃなのだろうか
 	if (fp == NULL)
 	{
 		perror("open failure");
 	}
 
+	//ここら辺同じことだからもうちょっと改良する方法ありそう
 	while (fscanf(fp, "%255s", cmd) != EOF)
 	{
 		printf("\n");
@@ -146,6 +191,11 @@ int run(char *file,int total)
 		{
 			system(cmd);
 		}
+		else if (strcmp(cmd,"run") == 0)
+		{
+			scanf(fmt,arg);
+			total = run(arg,total); //runは再帰できたほうが絶対楽しい
+		}
 	}
 	return total;
 }
@@ -155,8 +205,8 @@ int main(void)
 {
 	int total = 0; // 合計
 	int num = 0;
-	int recordFlag = 0,skipFlag = 0; //0の時false 1の時true
-	char recordFile[BUFLEN];
+	int recordFlag = 0,skipFlag = 0; //0の時false 1の時true bool使いたいぃ
+	char recordFile[BUFLEN]; //保存先ファイル名
 	char cmd[BUFLEN]; // コマンドの文字列バッファ
 	char arg[BUFLEN]; // コマンド引数バッファ
 	char buf[BUFLEN];
@@ -217,9 +267,13 @@ int main(void)
 		{
 			system(cmd);
 		}
+		else if (strcmp(cmd,"version") == 0)
+		{
+			printf("%s\n",VERSION);
+		}
 		else if (strcmp(cmd,"help") == 0)
 		{
-			skipFlag = 1;
+			skipFlag = 1; //ヘルプ表示は再現する必要ないんじゃないかな～
 			fgets(buf,BUFLEN,stdin);
 			num = sscanf(buf,fmt,arg);
 			help(num,arg);
