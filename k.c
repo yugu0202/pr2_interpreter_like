@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define BUFLEN 256 // 文字列バッファのサイズ
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 //ヘルプ表示　引数があればより詳細なヘルプを表示する
 void help(int num,char *arg)
